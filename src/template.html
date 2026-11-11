@@ -32,7 +32,17 @@ h1 { white-space: nowrap; }
 h1 { font-family: var(--display); font-weight: 400; font-size: 1.9rem; margin: 0; letter-spacing: .02em; }
 .count { margin-left: auto; font-family: var(--mono); font-size: .85rem; opacity: .9; }
 header .wrap > * { min-width: 0; }
-.controls { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 8px; }
+[hidden] { display: none !important; }
+.searchbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.searchbar input { font: inherit; padding: 9px 12px; border-radius: 8px; border: 2px solid rgba(0,0,0,.15); background: var(--surface); color: var(--fg); min-width: 0; width: 100%; }
+.filter-btn { font: inherit; font-weight: 700; white-space: nowrap; border: 2px solid rgba(255,255,255,.55); background: rgba(0,0,0,.15); color: var(--red-ink); border-radius: 8px; padding: 0 30px 0 12px; cursor: pointer; position: relative; display: flex; align-items: center; gap: 6px; }
+.filter-btn::after { content: ""; position: absolute; right: 12px; top: 50%; width: 6px; height: 6px; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateY(-70%) rotate(45deg); }
+.filter-btn[aria-expanded="true"] { background: #fff; color: #b8281f; border-color: #fff; }
+.filter-btn[aria-expanded="true"]::after { transform: translateY(-30%) rotate(-135deg); }
+.filter-btn .badge { background: #ffd23f; color: #3a2a00; border-radius: 999px; font-size: .72rem; min-width: 20px; height: 20px; display: inline-grid; place-items: center; padding: 0 6px; }
+.filters { display: grid; gap: 10px; }
+.reset-btn { justify-self: start; font: inherit; font-size: .8rem; background: none; border: 0; color: var(--red-ink); text-decoration: underline; cursor: pointer; padding: 2px 0; opacity: .9; }
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .forms-pick { position: relative; min-width: 0; }
 .forms-pick summary { list-style: none; cursor: pointer; font: inherit; padding: 9px 26px 9px 12px; border-radius: 8px; border: 2px solid rgba(0,0,0,.15); background: var(--surface); color: var(--fg);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
@@ -48,7 +58,7 @@ header .wrap > * { min-width: 0; }
 .controls input, .controls select { font: inherit; padding: 9px 12px; border-radius: 8px; border: 2px solid rgba(0,0,0,.15); background: var(--surface); color: var(--fg); min-width: 0; width: 100%; }
 @media (max-width: 760px) {
   .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr); gap: 6px; }
-  .controls input { grid-column: 1 / -1; }
+  .filter-btn { font-size: .85rem; padding: 0 26px 0 10px; }
   .forms-pick summary { font-size: .8rem; padding: 7px 20px 7px 8px; }
   .forms-pick summary::after { right: 8px; width: 5px; height: 5px; }
   .controls select { font-size: .8rem; padding: 7px 18px 7px 8px; appearance: none; -webkit-appearance: none; text-overflow: ellipsis;
@@ -69,7 +79,7 @@ main .wrap { padding-block: 18px 40px; }
   .lens { width: 28px; height: 28px; }
   .facts span { font-size: .85rem; }
 }
-@media (max-width: 340px) { .dots { display: none; } }
+@media (max-width: 420px) { .dots { display: none; } }
 .card { align-content: start; min-width: 0; grid-template-columns: minmax(0, 1fr); font: inherit; color: inherit; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; cursor: pointer; display: grid; gap: 4px; transition: transform .12s, border-color .12s; }
 .card.selected { border: 2px solid var(--red); padding: 9px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--red) 25%, transparent); }
 .card:hover, .card:focus-visible { transform: translateY(-2px); border-color: var(--red); outline: none; }
@@ -137,8 +147,12 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
       <span class="count" id="count"></span>
       <button class="shiny-btn" id="shinyAll" aria-pressed="false" title="이로치로 보기">✨ 이로치</button>
     </div>
+    <div class="searchbar">
+      <input id="search" type="search" placeholder="이름·번호로 찾기" autocomplete="off" aria-label="검색">
+      <button class="filter-btn" id="filterBtn" aria-expanded="false" aria-controls="filters">상세 조건<span class="badge" id="filterBadge" hidden></span></button>
+    </div>
+    <div class="filters" id="filters" hidden>
     <div class="controls">
-      <input id="search" type="search" placeholder="이름·번호로 찾기 · Enter: 다음 (예: 피카츄)" autocomplete="off" aria-label="검색">
       <select id="typeFilter" aria-label="타입"><option value="">모든 타입</option></select>
       <details class="forms-pick" id="formPick">
         <summary id="formSummary">모든 모습</summary>
@@ -157,6 +171,8 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
       </select>
     </div>
     <div class="gens" id="gens" role="group" aria-label="세대"></div>
+    <button class="reset-btn" id="resetFilters">조건 모두 지우기</button>
+    </div>
   </div>
 </header>
 <main><div class="wrap"><div id="grid"></div></div></main>
@@ -183,7 +199,8 @@ const total = p => p.s.reduce((a, b) => a + b, 0);
 // 한국어판 카드: 포켓몬 카드 게임 공식 사이트의 검색 화면을 상세 창 안에 그대로 띄움
 // 한국어판 카드: 메가·거다이맥스·리전폼 같은 다른 모습도 그 포켓몬 이름(진화 단계 이름)으로 검색
 const krName = p => DEX[p.sp - 1].n;
-const krUrl = p => 'https://pokemoncard.co.kr/cards?s=' + encodeURIComponent(krName(p));
+// search_params=cardname: 카드 이름에서만 찾음 (설명에 이름만 나오는 다른 카드는 빠짐)
+const krUrl = p => 'https://pokemoncard.co.kr/cards?search_params=cardname&s=' + encodeURIComponent(krName(p));
 const STAT = ['HP','공격','방어','특수공격','특수방어','스피드'];
 const GENS = [[1,1025,'전체'],[1,151],[152,251],[252,386],[387,493],[494,649],[650,721],[722,809],[810,905],[906,1025]];
 const $ = id => document.getElementById(id);
@@ -242,6 +259,13 @@ $('formFilter').onchange = render;
 document.addEventListener('click', e => { if (!$('formPick').contains(e.target)) $('formPick').open = false; });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('formPick').open = false; });
 $('sortOrder').onchange = render;
+// 상세 조건: 버튼을 누르면 펼치고 접음
+$('filterBtn').onclick = () => {
+  const open = $('filters').hidden; $('filters').hidden = !open; $('filterBtn').setAttribute('aria-expanded', open);
+};
+$('resetFilters').onclick = () => {
+  gen = 0; $('typeFilter').value = ''; $('sortOrder').value = 'evo'; formBoxes().forEach(b => b.checked = true); render();
+};
 $('shinyAll').onclick = toggleShiny;
 
 function render() {
@@ -272,6 +296,9 @@ function render() {
     : bst ? total(b) - total(a) || a.sp - b.sp || grp(a) - grp(b) || tie(a,b)
     : key(a) - key(b) || grp(a) - grp(b) || tie(a,b));
   $('count').textContent = `${shown.length}마리`;
+  // 기본값과 다른 조건 개수를 버튼에 표시
+  const n = (gen ? 1 : 0) + ($('typeFilter').value ? 1 : 0) + ($('sortOrder').value !== 'evo' ? 1 : 0) + (formBoxes().some(b => !b.checked) ? 1 : 0);
+  $('filterBadge').hidden = !n; $('filterBadge').textContent = n;
   $('grid').innerHTML = shown.length ? shown.map(p => `
     <button class="card" data-id="${p.id}">
       <div class="sprite"><img src="${img(p)}" alt="" loading="lazy"></div>
@@ -337,7 +364,7 @@ function open(id) {
         <div class="bar"><span style="width:${Math.min(v/200*100,100)}%;background:${col}"></span></div></div>`).join('')}
       </div>
       <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
-      <div><h3>한국어판 포켓몬 카드 · ‘${krName(p)}’ 검색 결과</h3>
+      <div><h3>한국어판 포켓몬 카드 · 카드 이름에 ‘${krName(p)}’ 들어간 카드</h3>
         <div class="kr-frame"><iframe src="${krUrl(p)}" title="${krName(p)} 한국어판 카드" loading="lazy"></iframe></div></div>
       <div class="nav">
         <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
