@@ -65,9 +65,6 @@ main .wrap { padding-block: 18px 40px; }
 .type { font-size: .72rem; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 4px; letter-spacing: .02em; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
 .empty { text-align: center; color: var(--muted); padding: 48px 0; }
 dialog { border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--fg); width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
-#zoom { background: transparent; width: auto; max-width: calc(100vw - 32px); text-align: center; color: #fff; }
-#zoom img { max-height: calc(100dvh - 90px); max-width: 100%; border-radius: 14px; display: block; margin: 0 auto; }
-#zoom p { margin: 8px 0 0; font-size: .85rem; }
 dialog::backdrop { background: rgba(20,10,10,.55); }
 .d-top { padding: 18px 18px 14px; display: grid; grid-template-columns: 130px 1fr; gap: 16px; align-items: center; position: relative; }
 .d-top .sprite { aspect-ratio: 1; }
@@ -94,15 +91,6 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
 .forms .fn { font-size: .78rem; line-height: 1.3; word-break: keep-all; }
 .tag { font-size: .7rem; font-weight: 700; color: var(--red); letter-spacing: .02em; }
  { display: flex; gap: 6px; flex-wrap: wrap; }
-.tcg { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-.tc { display: block; min-width: 0; border-radius: 6px; }
-.tc-img { aspect-ratio: 63 / 88; max-width: 100%; border-radius: 6px; overflow: hidden; background: var(--sunk); position: relative; transition: transform .12s; }
-.tc:hover .tc-img, .tc:focus-visible .tc-img { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--red); }
-.tc:focus-visible { outline: none; }
-.tc-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.tc-img .ph { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 8px; font-size: .75rem; font-weight: 700; color: var(--muted); border: 2px solid var(--line); border-radius: 6px; word-break: keep-all; }
-.note { margin: 0 0 8px; font-size: .8rem; color: var(--muted); background: var(--sunk); border-radius: 8px; padding: 8px 10px; }
-.more { margin-top: 10px; }
 .more { font: inherit; font-size: .9rem; width: 100%; background: var(--sunk); color: var(--fg); border: 1px solid var(--line); padding: 12px; border-radius: 10px; cursor: pointer; }
 .more:hover, .more:focus-visible { border-color: var(--red); outline: none; }
 .abil { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -139,7 +127,6 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
 </header>
 <main><div class="wrap"><div id="grid"></div></div></main>
 
-<dialog id="zoom" aria-label="카드 크게 보기"><img id="zoomImg" alt=""><p id="zoomCap"></p></dialog>
 <dialog id="detail" aria-labelledby="dName"><div id="dContent"></div></dialog>
 
 <script>
@@ -158,32 +145,6 @@ const TYPES = {
   steel:['강철','#5d97ad'], fairy:['페어리','#d966c9'],
 };
 const KIND = { base: 0, mega: 1, gmax: 2, region: 3, other: 4 };
-const CARDS = __CARDS__;
-function cardImg([s, num, , , h]) {
-  const sid = CARDS.sets[s][0];
-  if (h === 0) return [`https://images.pokemontcg.io/${sid}/${num}.png`, `https://images.pokemontcg.io/${sid}/${num}_hires.png`];
-  if (h === 1) return [`https://images.scrydex.com/pokemon/${sid}-${num}/small`, `https://images.scrydex.com/pokemon/${sid}-${num}/large`];
-  return h;
-}
-let cardList = [], cardShown = 0;
-function cardFail(img) {
-  img.replaceWith(Object.assign(document.createElement('span'), { className: 'ph', textContent: img.alt }));
-  const n = document.getElementById('cardNote'); if (n) n.hidden = false;
-}
-// 카드 이미지만 30장씩 나열 (큰 그림은 같은 화면에서 확대)
-function moreCards() {
-  const next = cardList.slice(cardShown, cardShown + 30);
-  $('tcg').insertAdjacentHTML('beforeend', next.map(c => {
-    const [sm, lg] = cardImg(c); const set = CARDS.sets[c[0]];
-    return `<button class="tc no-style" data-big="${lg}" title="${c[2]} · ${set[1]} ${c[1]} (${set[2]})" style="border:0;padding:0;background:none;cursor:zoom-in">
-      <div class="tc-img"><img src="${sm}" alt="${c[2].replace(/"/g, '&quot;')}" loading="lazy" onerror="cardFail(this)"></div></button>`;
-  }).join(''));
-  cardShown += next.length;
-  const left = cardList.length - cardShown;
-  $('moreCards').hidden = left <= 0;
-  $('moreCards').textContent = `카드 더 보기 (${left}장 남음)`;
-}
-function zoom(src, cap) { $('zoomImg').src = src; $('zoomCap').textContent = cap + ' · 눌러서 닫기'; $('zoom').showModal(); }
 const STAT = ['HP','공격','방어','특수공격','특수방어','스피드'];
 const GENS = [[1,1025,'전체'],[1,151],[152,251],[252,386],[387,493],[494,649],[650,721],[722,809],[810,905],[906,1025]];
 const $ = id => document.getElementById(id);
@@ -240,7 +201,6 @@ $('grid').addEventListener('click', e => {
   const c = e.target.closest('.card');
   if (c) open(+c.dataset.id);
 });
-document.getElementById('zoom').addEventListener('click', () => document.getElementById('zoom').close());
 $('detail').addEventListener('click', e => { if (e.target === $('detail')) $('detail').close(); });
 
 function open(id) {
@@ -291,21 +251,12 @@ function open(id) {
         <div class="bar"><span style="width:${Math.min(v/200*100,100)}%;background:${col}"></span></div></div>`).join('')}
       </div>
       <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
-      ${(CARDS.by[p.sp] || []).length ? `<div><h3>포켓몬 카드 ${CARDS.by[p.sp].length}장 (영어판) · 최신 순</h3>
-        <p class="note" id="cardNote" hidden>이 화면에서는 카드 그림을 불러올 수 없어요. 배포된 사이트에서는 그림이 보여요.</p>
-        <div class="tcg" id="tcg"></div><button class="more" id="moreCards" hidden></button></div>` : ''}
       <div class="nav">
         <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
         <button id="next" ${idx < 0 || idx >= shown.length - 1 ? 'disabled' : ''}>다음 →</button>
       </div>
     </div>`;
   $('dContent').querySelectorAll('[data-form]').forEach(b => b.onclick = () => open(+b.dataset.form));
-  const all = CARDS.by[p.sp] || [];
-  const want = p.k === 'mega' ? /^(M |Mega )/ : p.k === 'gmax' ? /VMAX/ : null;
-  cardList = want ? [...all.filter(c => want.test(c[2])), ...all.filter(c => !want.test(c[2]))] : all;
-  cardShown = 0;
-  if (all.length) { $('moreCards').onclick = moreCards; moreCards(); }
-  $('tcg')?.addEventListener('click', e => { const b = e.target.closest('[data-big]'); if (b) zoom(b.dataset.big, b.title); });
   $('prev').onclick = () => open(shown[idx - 1].id);
   $('next').onclick = () => open(shown[idx + 1].id);
   if (!$('detail').open) $('detail').showModal();
