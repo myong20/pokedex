@@ -181,7 +181,14 @@ const TYPES = {
 const KIND = { base: 0, mega: 1, gmax: 2, region: 3, other: 4 };
 const total = p => p.s.reduce((a, b) => a + b, 0);
 // 한국어판 카드: 포켓몬 카드 게임 공식 사이트의 검색 화면을 상세 창 안에 그대로 띄움
-const krUrl = p => 'https://pokemoncard.co.kr/cards?s=' + encodeURIComponent(DEX[p.sp - 1].n);
+// 모습에 맞는 이름으로 검색: 메가·거다이맥스는 그 이름 그대로, 리전폼은 '알로라 나인테일'처럼
+function krName(p) {
+  const base = DEX[p.sp - 1].n;
+  if (p.k === 'mega' || p.k === 'gmax') return p.n;
+  if (p.k === 'region') { const r = (p.l.match(/^(알로라|가라르|히스이|팔데아)/) || [])[1]; return r ? `${r} ${base}` : base; }
+  return base;
+}
+const krUrl = p => 'https://pokemoncard.co.kr/cards?s=' + encodeURIComponent(krName(p));
 const STAT = ['HP','공격','방어','특수공격','특수방어','스피드'];
 const GENS = [[1,1025,'전체'],[1,151],[152,251],[252,386],[387,493],[494,649],[650,721],[722,809],[810,905],[906,1025]];
 const $ = id => document.getElementById(id);
@@ -335,8 +342,8 @@ function open(id) {
         <div class="bar"><span style="width:${Math.min(v/200*100,100)}%;background:${col}"></span></div></div>`).join('')}
       </div>
       <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
-      <div><h3>한국어판 포켓몬 카드</h3>
-        <div class="kr-frame"><iframe src="${krUrl(p)}" title="${DEX[p.sp - 1].n} 한국어판 카드" loading="lazy"></iframe></div></div>
+      <div><h3>한국어판 포켓몬 카드 · ‘${krName(p)}’ 검색 결과</h3>
+        <div class="kr-frame"><iframe src="${krUrl(p)}" title="${krName(p)} 한국어판 카드" loading="lazy"></iframe></div></div>
       <div class="nav">
         <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
         <button id="next" ${idx < 0 || idx >= shown.length - 1 ? 'disabled' : ''}>다음 →</button>
