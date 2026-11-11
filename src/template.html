@@ -81,7 +81,7 @@ main .wrap { padding-block: 18px 40px; }
 .types { display: flex; gap: 4px; flex-wrap: wrap; }
 .type { font-size: .72rem; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 4px; letter-spacing: .02em; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
 .empty { text-align: center; color: var(--muted); padding: 48px 0; }
-dialog { border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--fg); width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
+dialog { border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--fg); width: min(880px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
 dialog::backdrop { background: rgba(20,10,10,.55); }
 .d-top { padding: 18px 18px 14px; display: grid; grid-template-columns: 130px 1fr; gap: 16px; align-items: center; position: relative; }
 .d-top .sprite { aspect-ratio: 1; }
@@ -125,6 +125,7 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
 .nav button:disabled { opacity: .4; cursor: default; }
 @media (max-width: 420px) { .d-top { grid-template-columns: 96px 1fr; } .d-top h2 { font-size: 1.6rem; } }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+@media (min-width: 700px) { .d-top { grid-template-columns: 180px 1fr; } .d-top h2 { font-size: 2.4rem; } }
 </style>
 
 <header>
