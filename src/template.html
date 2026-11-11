@@ -33,10 +33,24 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 1.9rem; margin: 0
 .count { margin-left: auto; font-family: var(--mono); font-size: .85rem; opacity: .9; }
 header .wrap > * { min-width: 0; }
 .controls { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 8px; }
+.forms-pick { position: relative; min-width: 0; }
+.forms-pick summary { list-style: none; cursor: pointer; font: inherit; padding: 9px 26px 9px 12px; border-radius: 8px; border: 2px solid rgba(0,0,0,.15); background: var(--surface); color: var(--fg);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
+.forms-pick summary::-webkit-details-marker { display: none; }
+.forms-pick summary::after { content: ""; position: absolute; right: 10px; top: 50%; width: 6px; height: 6px; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateY(-70%) rotate(45deg); }
+.forms-pick[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+.forms-panel { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); max-width: calc(100vw - 32px); z-index: 6; min-width: 210px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.18); display: grid; }
+.forms-panel label { display: flex; align-items: center; gap: 8px; padding: 9px 8px; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+.forms-panel label:hover { background: var(--sunk); }
+.controls .forms-panel input { width: 18px; height: 18px; padding: 0; border: 0; flex: none; accent-color: var(--red); margin: 0; grid-column: auto; }
+.forms-panel label { white-space: nowrap; }
+.forms-panel small { color: var(--muted); }
 .controls input, .controls select { font: inherit; padding: 9px 12px; border-radius: 8px; border: 2px solid rgba(0,0,0,.15); background: var(--surface); color: var(--fg); min-width: 0; width: 100%; }
 @media (max-width: 760px) {
   .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr); gap: 6px; }
   .controls input { grid-column: 1 / -1; }
+  .forms-pick summary { font-size: .8rem; padding: 7px 20px 7px 8px; }
+  .forms-pick summary::after { right: 8px; width: 5px; height: 5px; }
   .controls select { font-size: .8rem; padding: 7px 18px 7px 8px; appearance: none; -webkit-appearance: none; text-overflow: ellipsis;
     background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
     background-position: right 9px center, right 5px center; background-size: 4px 4px; background-repeat: no-repeat; }
@@ -117,10 +131,16 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
     <div class="controls">
       <input id="search" type="search" placeholder="이름·번호로 찾기 · Enter: 다음 (예: 피카츄)" autocomplete="off" aria-label="검색">
       <select id="typeFilter" aria-label="타입"><option value="">모든 타입</option></select>
-      <select id="formFilter" aria-label="모습">
-        <option value="all" selected>모든 모습</option><option value="base">기본 모습만</option><option value="mega">메가진화</option><option value="gmax">거다이맥스</option>
-        <option value="region">리전폼 (알로라·가라르 등)</option><option value="other">그 밖의 모습</option>
-      </select>
+      <details class="forms-pick" id="formPick">
+        <summary id="formSummary">모든 모습</summary>
+        <div class="forms-panel" id="formFilter">
+          <label><input type="checkbox" value="base" checked> 기본 모습</label>
+          <label><input type="checkbox" value="mega" checked> 메가진화</label>
+          <label><input type="checkbox" value="gmax" checked> 거다이맥스</label>
+          <label><input type="checkbox" value="region" checked> 리전폼 <small>(알로라·가라르 등)</small></label>
+          <label><input type="checkbox" value="other" checked> 그 밖의 모습</label>
+        </div>
+      </details>
       <select id="sortOrder" aria-label="정렬">
         <option value="evo">진화순</option><option value="dex">번호순</option>
       </select>
@@ -179,8 +199,8 @@ function find(next) {
   if (!q) { found = []; foundAt = -1; $('count').textContent = `${shown.length}마리`; return; }
   const list = shown.filter(p => matches(p, q));
   // 지금 고른 세대·타입·모습 안에 없으면 전체 목록으로 돌려서 다시 찾음
-  if (!list.length && [...DEX, ...FORMS].some(p => matches(p, q)) && (gen || $('typeFilter').value || $('formFilter').value !== 'all')) {
-    gen = 0; $('typeFilter').value = ''; $('formFilter').value = 'all'; render(); return find(false);
+  if (!list.length && [...DEX, ...FORMS].some(p => matches(p, q)) && (gen || $('typeFilter').value || formBoxes().some(b => !b.checked))) {
+    gen = 0; $('typeFilter').value = ''; formBoxes().forEach(b => b.checked = true); render(); return find(false);
   }
   const ids = list.map(p => p.id).join();
   if (ids !== found.map(p => p.id).join()) { found = list; foundAt = 0; }
@@ -192,16 +212,24 @@ function find(next) {
   $('count').textContent = found.length > 1 ? `${found.length}개 중 ${foundAt + 1}번째` : '찾았어요';
 }
 $('typeFilter').onchange = () => { render(); found = []; };
+// 모습 고르기: 체크박스로 켜고 끄기
+const formBoxes = () => [...$('formFilter').querySelectorAll('input')];
 $('formFilter').onchange = render;
+document.addEventListener('click', e => { if (!$('formPick').contains(e.target)) $('formPick').open = false; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('formPick').open = false; });
 $('sortOrder').onchange = render;
 
 function render() {
   const type = $('typeFilter').value;
   const [s,e] = GENS[gen];
   [...$('gens').children].forEach((b,i) => b.setAttribute('aria-pressed', i === gen));
-  const form = $('formFilter').value;
-  const pool = form === 'base' ? DEX : form === 'all' ? [...DEX, ...FORMS]
-    : form === 'main' ? [...DEX, ...FORMS.filter(f => f.k === 'mega' || f.k === 'gmax')] : FORMS.filter(f => f.k === form);
+  const on = new Set(formBoxes().filter(b => b.checked).map(b => b.value));
+  // 같은 진화 단계로 치는 모습(루가루암 한밤중의 모습 등)은 '기본 모습'에 들어감
+  const kindOf = p => p.k === 'base' || (p.st && p.k !== 'mega') ? 'base' : p.k;
+  const pool = [...DEX, ...FORMS].filter(p => on.has(kindOf(p)));
+  const boxes = formBoxes();
+  $('formSummary').textContent = on.size === boxes.length ? '모든 모습' : on.size === 0 ? '모습 없음'
+    : boxes.filter(b => b.checked).map(b => b.parentElement.firstChild.nextSibling.textContent.trim()).join('·');
   const key = $('sortOrder').value === 'evo' ? p => DEX[p.sp - 1].o : p => p.sp;
   shown = pool.filter(p => p.sp >= s && p.sp <= e && (!type || p.t.includes(type)));
   // 진화 순서: 지금 보이는 것 중 가장 앞 번호가 있는 진화 계열부터, 계열 안에서는 진화 단계 순서로
