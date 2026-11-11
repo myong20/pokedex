@@ -7,9 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Vercel 프로젝트(aza18/pokedex) 번호. 비밀값이 아니라서 여기 그대로 적어 둠.
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_ORG_ID: team_KLzBLAfohwkmvZbrYZITIb44
+  VERCEL_PROJECT_ID: prj_wYGbA091k96rNjurn5HGJXHL7skE
 
 jobs:
   deploy:

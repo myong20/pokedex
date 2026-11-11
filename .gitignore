@@ -2,3 +2,5 @@ public/
 pokedex-artifact.html
 .vercel/
 __pycache__/
+.vercel
+.env*.local
