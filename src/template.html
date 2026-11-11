@@ -135,7 +135,9 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
       <details class="forms-pick" id="formPick">
         <summary id="formSummary">모든 모습</summary>
         <div class="forms-panel" id="formFilter">
-          <label><input type="checkbox" value="base" checked> 기본 모습</label>
+          <label><input type="checkbox" value="st1" checked> 1단계</label>
+          <label><input type="checkbox" value="st2" checked> 2단계</label>
+          <label><input type="checkbox" value="st3" checked> 3단계</label>
           <label><input type="checkbox" value="mega" checked> 메가진화</label>
           <label><input type="checkbox" value="gmax" checked> 거다이맥스</label>
           <label><input type="checkbox" value="region" checked> 리전폼 <small>(알로라·가라르 등)</small></label>
@@ -226,8 +228,8 @@ function render() {
   const [s,e] = GENS[gen];
   [...$('gens').children].forEach((b,i) => b.setAttribute('aria-pressed', i === gen));
   const on = new Set(formBoxes().filter(b => b.checked).map(b => b.value));
-  // 같은 진화 단계로 치는 모습(루가루암 한밤중의 모습 등)은 '기본 모습'에 들어감
-  const kindOf = p => p.k === 'base' || (p.st && p.k !== 'mega') ? 'base' : p.k;
+  // 평소 모습은 진화 단계(1·2·3단계)로 나눔. 같은 단계로 치는 모습(루가루암 한밤중의 모습 등)도 그 단계에 들어감
+  const kindOf = p => p.k === 'base' || (p.st && p.k !== 'mega') ? 'st' + (p.st || DEX[p.sp - 1].st) : p.k;
   const pool = [...DEX, ...FORMS].filter(p => on.has(kindOf(p)));
   const boxes = formBoxes();
   $('formSummary').textContent = on.size === boxes.length ? '모든 모습' : on.size === 0 ? '모습 없음'
