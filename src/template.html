@@ -247,9 +247,13 @@ function open(id) {
   const p = ALL.get(id);
   // 진화 단계 → 메가 → 거다이맥스 → 리전폼 → 그 밖의 모습 (없는 건 빠짐)
   const chain = DEX.filter(x => x.c === DEX[p.sp - 1].c).sort((a,b) => a.o - b.o);
-  const extra = k => chain.flatMap(x => BY_SP[x.id].filter(f => f.k === k).sort((a, b) => (a.ord ?? a.id) - (b.ord ?? b.id)));
+  const extra = k => chain.flatMap(x => BY_SP[x.id].filter(f => f.k === k && !(f.k !== 'base' && f.st)).sort((a, b) => (a.ord ?? a.id) - (b.ord ?? b.id)));
   const family = [
-    ...chain.map(x => [x, `${x.st}단계`]),
+    // 같은 진화 단계로 치는 모습(예: 파밀리쥐 세 식구)은 진화 단계 줄에 함께 넣음
+    ...chain.flatMap(x => {
+      const same = BY_SP[x.id].filter(f => f.k !== 'base' && f.st);
+      return [...same.filter(f => f.before), x, ...same.filter(f => !f.before)].map(o => [o, `${o.st}단계`]);
+    }),
     ...extra('mega').map(f => [f, f.l]),
     ...extra('gmax').map(f => [f, '거다이맥스']),
     ...extra('region').map(f => [f, '리전폼']),
