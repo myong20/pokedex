@@ -90,20 +90,14 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
 .forms .lv { font-size: .68rem; font-weight: 700; color: var(--red); letter-spacing: .03em; }
 .forms .fn { font-size: .78rem; line-height: 1.3; word-break: keep-all; }
 .tag { font-size: .7rem; font-weight: 700; color: var(--red); letter-spacing: .02em; }
-.tcg { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
-.tc { color: inherit; text-decoration: none; display: grid; gap: 2px; align-content: start; min-width: 0; font-size: .75rem; }
-.tc-img { aspect-ratio: 63 / 88; max-width: 100%; border-radius: 6px; overflow: hidden; background: var(--sunk); position: relative; transition: transform .12s; }
-.tc:hover .tc-img, .tc:focus-visible .tc-img { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--red); }
-.tc:focus-visible { outline: none; }
-.tc-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.tc-img .ph { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 8px; font-weight: 700; color: var(--muted); border: 2px solid var(--line); border-radius: 6px; word-break: keep-all; }
-.tc-set { font-weight: 500; line-height: 1.3; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tc-r { color: var(--red); font-size: .68rem; font-weight: 700; }
-.note { margin: 0 0 8px; font-size: .8rem; color: var(--muted); background: var(--sunk); border-radius: 8px; padding: 8px 10px; }
+ { display: flex; gap: 6px; flex-wrap: wrap; }
+.kr-frame { margin-bottom: 8px; }
+.kr-frame iframe { width: 100%; height: 70vh; min-height: 420px; border: 1px solid var(--line); border-radius: 10px; background: #fff; display: block; }
 .kr-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-decoration: none; background: var(--red); color: var(--red-ink); border-radius: 10px; padding: 12px 14px; font-weight: 700; }
 .kr-link small { display: block; font-weight: 400; opacity: .85; font-size: .75rem; margin-top: 2px; }
 .kr-link:hover, .kr-link:focus-visible { filter: brightness(1.08); outline: 2px solid var(--fg); outline-offset: 2px; }
-.more { font: inherit; font-size: .85rem; width: 100%; margin-top: 10px; background: var(--sunk); color: var(--fg); border: 0; padding: 9px; border-radius: 8px; cursor: pointer; }
+.more { font: inherit; font-size: .9rem; width: 100%; background: var(--sunk); color: var(--fg); border: 1px solid var(--line); padding: 12px; border-radius: 10px; cursor: pointer; }
+.more:hover, .more:focus-visible { border-color: var(--red); outline: none; }
 .abil { display: flex; gap: 6px; flex-wrap: wrap; }
 .abil span { border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; font-size: .85rem; }
 .abil .hidden { border-style: dashed; color: var(--muted); }
@@ -156,36 +150,7 @@ const TYPES = {
   steel:['강철','#5d97ad'], fairy:['페어리','#d966c9'],
 };
 const KIND = { base: 0, mega: 1, gmax: 2, region: 3, other: 4 };
-const CARDS = __CARDS__;
-const RAR_KO = { 'Common':'커먼', 'Uncommon':'언커먼', 'Rare':'레어', 'Rare Holo':'레어 홀로', 'Promo':'프로모', 'Double Rare':'더블 레어', 'Ultra Rare':'울트라 레어',
-  'Illustration Rare':'일러스트 레어', 'Special Illustration Rare':'스페셜 일러스트 레어', 'Hyper Rare':'하이퍼 레어', 'Rare Secret':'시크릿 레어',
-  'Shiny Rare':'색이 다른 레어', 'Shiny Ultra Rare':'색이 다른 울트라 레어', 'Rare Shiny':'색이 다른 레어', 'Radiant Rare':'찬란한 레어', 'Amazing Rare':'어메이징 레어', 'ACE SPEC Rare':'ACE SPEC' };
-function cardImg([s, num, , , h]) {
-  const sid = CARDS.sets[s][0];
-  if (h === 0) return [`https://images.pokemontcg.io/${sid}/${num}.png`, `https://images.pokemontcg.io/${sid}/${num}_hires.png`];
-  if (h === 1) return [`https://images.scrydex.com/pokemon/${sid}-${num}/small`, `https://images.scrydex.com/pokemon/${sid}-${num}/large`];
-  return h;
-}
-let cardList = [], cardShown = 0;
-function cardFail(img) {
-  img.replaceWith(Object.assign(document.createElement('span'), { className: 'ph', textContent: img.alt }));
-  const n = document.getElementById('cardNote'); if (n) n.hidden = false;
-}
-function moreCards() {
-  const box = $('tcg'); const next = cardList.slice(cardShown, cardShown + 30);
-  box.insertAdjacentHTML('beforeend', next.map(c => {
-    const [sm, lg] = cardImg(c); const set = CARDS.sets[c[0]]; const r = CARDS.rar[c[3]];
-    return `<a class="tc" href="${lg}" target="_blank" rel="noopener" title="${c[2]} · ${set[1]} ${c[1]}">
-      <div class="tc-img"><img src="${sm}" alt="${c[2].replace(/"/g, '&quot;')}" loading="lazy" onerror="cardFail(this)"></div>
-      <span class="tc-set">${set[1]}</span>
-      <span class="num">${c[1]}${/^\d+$/.test(c[1]) && +c[1] <= set[3] ? '/' + set[3] : ''} · ${set[2]}</span>
-      ${r ? `<span class="tc-r">${RAR_KO[r] || r}</span>` : ''}</a>`;
-  }).join(''));
-  cardShown += next.length;
-  const left = cardList.length - cardShown;
-  $('moreCards').hidden = left <= 0;
-  $('moreCards').textContent = `카드 더 보기 (${left}장 남음)`;
-}
+const krUrl = p => 'https://pokemoncard.co.kr/cards?s=' + encodeURIComponent(DEX[p.sp - 1].n);
 const STAT = ['HP','공격','방어','특수공격','특수방어','스피드'];
 const GENS = [[1,1025,'전체'],[1,151],[152,251],[252,386],[387,493],[494,649],[650,721],[722,809],[810,905],[906,1025]];
 const $ = id => document.getElementById(id);
@@ -287,22 +252,18 @@ function open(id) {
       </div>
       <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
       <div><h3>한국어판 포켓몬 카드</h3>
-        <a class="kr-link" href="https://pokemoncard.co.kr/cards?s=${encodeURIComponent(DEX[p.sp - 1].n)}" target="_blank" rel="noopener">
-          <span>${DEX[p.sp - 1].n} 카드 보기<small>포켓몬 카드 게임 공식 사이트(pokemoncard.co.kr) 검색이 새 탭에서 열려요</small></span><span aria-hidden="true">↗</span></a></div>
-      ${(CARDS.by[p.sp] || []).length ? `<div><h3>영어판 포켓몬 카드 ${CARDS.by[p.sp].length}장 · 최신 순</h3>
-        <p class="note" id="cardNote" hidden>이 페이지에서는 카드 그림을 불러올 수 없어요. 내려받은 HTML 파일로 열면 그림이 보여요. 카드를 누르면 큰 그림이 새 탭에서 열려요.</p>
-        <div class="tcg" id="tcg"></div><button class="more" id="moreCards" hidden></button></div>` : ''}
+        <div class="kr-frame" id="krFrame"><button class="more" id="krLoad">공식 사이트의 ${DEX[p.sp - 1].n} 카드 불러오기</button></div>
+        <a class="kr-link" href="${krUrl(p)}" target="_blank" rel="noopener">
+          <span>새 탭에서 크게 보기<small>포켓몬 카드 게임 공식 사이트(pokemoncard.co.kr)</small></span><span aria-hidden="true">↗</span></a></div>
       <div class="nav">
         <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
         <button id="next" ${idx < 0 || idx >= shown.length - 1 ? 'disabled' : ''}>다음 →</button>
       </div>
     </div>`;
   $('dContent').querySelectorAll('[data-form]').forEach(b => b.onclick = () => open(+b.dataset.form));
-  const all = CARDS.by[p.sp] || [];
-  const want = p.k === 'mega' ? /^(M |Mega )/ : p.k === 'gmax' ? /VMAX/ : null;
-  cardList = want ? [...all.filter(c => want.test(c[2])), ...all.filter(c => !want.test(c[2]))] : all;
-  cardShown = 0;
-  if (all.length) { $('moreCards').onclick = moreCards; moreCards(); }
+  $('krLoad').onclick = () => {
+    $('krFrame').innerHTML = `<iframe src="${krUrl(p)}" title="${DEX[p.sp - 1].n} 한국어판 카드" loading="lazy"></iframe>`;
+  };
   $('prev').onclick = () => open(shown[idx - 1].id);
   $('next').onclick = () => open(shown[idx + 1].id);
   if (!$('detail').open) $('detail').showModal();

@@ -1,11 +1,10 @@
 # 포켓몬 도감
 
-1025마리 포켓몬과 메가진화·거다이맥스·리전폼, 포켓몬 카드 목록을 한글로 찾아보는 정적 웹페이지예요.
+1025마리 포켓몬과 메가진화·거다이맥스·리전폼, 한국어판 포켓몬 카드를 한글로 찾아보는 정적 웹페이지예요.
 
 ## 구조
 - `src/template.html` — 화면(HTML·CSS·JS)
 - `data/pokemon.json`, `data/forms.json` — 포켓몬·모습 데이터 (PokeAPI 데이터 기반)
-- `data/cards.json` — 영어판 카드 목록 (pokemon-tcg-data 기반)
 - `scripts/build.py` — 위 파일을 합쳐 `public/index.html` 을 만듦
 
 ## 로컬에서 보기
