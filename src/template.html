@@ -81,7 +81,7 @@ main .wrap { padding-block: 18px 40px; }
 .types { display: flex; gap: 4px; flex-wrap: wrap; }
 .type { font-size: .72rem; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 4px; letter-spacing: .02em; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
 .empty { text-align: center; color: var(--muted); padding: 48px 0; }
-dialog { border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--fg); width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
+dialog { border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--fg); width: min(880px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
 dialog::backdrop { background: rgba(20,10,10,.55); }
 .d-top { padding: 18px 18px 14px; display: grid; grid-template-columns: 130px 1fr; gap: 16px; align-items: center; position: relative; }
 .d-top .sprite { aspect-ratio: 1; }
@@ -114,6 +114,7 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
 .d-top .shiny-btn[aria-pressed="true"] { background: #ffd23f; color: #3a2a00; }
 .tag { font-size: .7rem; font-weight: 700; color: var(--red); letter-spacing: .02em; }
  { display: flex; gap: 6px; flex-wrap: wrap; }
+.kr-frame iframe { width: 100%; height: 75vh; min-height: 460px; border: 1px solid var(--line); border-radius: 10px; background: #fff; display: block; }
 .more { font: inherit; font-size: .9rem; width: 100%; background: var(--sunk); color: var(--fg); border: 1px solid var(--line); padding: 12px; border-radius: 10px; cursor: pointer; }
 .more:hover, .more:focus-visible { border-color: var(--red); outline: none; }
 .abil { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -124,6 +125,7 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
 .nav button:disabled { opacity: .4; cursor: default; }
 @media (max-width: 420px) { .d-top { grid-template-columns: 96px 1fr; } .d-top h2 { font-size: 1.6rem; } }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+@media (min-width: 700px) { .d-top { grid-template-columns: 180px 1fr; } .d-top h2 { font-size: 2.4rem; } }
 </style>
 
 <header>
@@ -178,6 +180,10 @@ const TYPES = {
 };
 const KIND = { base: 0, mega: 1, gmax: 2, region: 3, other: 4 };
 const total = p => p.s.reduce((a, b) => a + b, 0);
+// 한국어판 카드: 포켓몬 카드 게임 공식 사이트의 검색 화면을 상세 창 안에 그대로 띄움
+// 한국어판 카드: 메가·거다이맥스·리전폼 같은 다른 모습도 그 포켓몬 이름(진화 단계 이름)으로 검색
+const krName = p => DEX[p.sp - 1].n;
+const krUrl = p => 'https://pokemoncard.co.kr/cards?s=' + encodeURIComponent(krName(p));
 const STAT = ['HP','공격','방어','특수공격','특수방어','스피드'];
 const GENS = [[1,1025,'전체'],[1,151],[152,251],[252,386],[387,493],[494,649],[650,721],[722,809],[810,905],[906,1025]];
 const $ = id => document.getElementById(id);
@@ -331,6 +337,8 @@ function open(id) {
         <div class="bar"><span style="width:${Math.min(v/200*100,100)}%;background:${col}"></span></div></div>`).join('')}
       </div>
       <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
+      <div><h3>한국어판 포켓몬 카드 · ‘${krName(p)}’ 검색 결과</h3>
+        <div class="kr-frame"><iframe src="${krUrl(p)}" title="${krName(p)} 한국어판 카드" loading="lazy"></iframe></div></div>
       <div class="nav">
         <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
         <button id="next" ${idx < 0 || idx >= shown.length - 1 ? 'disabled' : ''}>다음 →</button>
