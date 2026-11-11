@@ -3,7 +3,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
 t = (root / "src/template.html").read_text(encoding="utf-8")
-for key, name in [("__DATA__", "pokemon"), ("__FORMS__", "forms")]:
+for key, name in [("__DATA__", "pokemon"), ("__FORMS__", "forms"), ("__CARDS__", "cards")]:
     t = t.replace(key, (root / f"data/{name}.json").read_text(encoding="utf-8"))
 
 (root / "pokedex-artifact.html").write_text(t, encoding="utf-8")
