@@ -93,9 +93,6 @@ h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 
  { display: flex; gap: 6px; flex-wrap: wrap; }
 .kr-frame { margin-bottom: 8px; }
 .kr-frame iframe { width: 100%; height: 70vh; min-height: 420px; border: 1px solid var(--line); border-radius: 10px; background: #fff; display: block; }
-.kr-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-decoration: none; background: var(--red); color: var(--red-ink); border-radius: 10px; padding: 12px 14px; font-weight: 700; }
-.kr-link small { display: block; font-weight: 400; opacity: .85; font-size: .75rem; margin-top: 2px; }
-.kr-link:hover, .kr-link:focus-visible { filter: brightness(1.08); outline: 2px solid var(--fg); outline-offset: 2px; }
 .more { font: inherit; font-size: .9rem; width: 100%; background: var(--sunk); color: var(--fg); border: 1px solid var(--line); padding: 12px; border-radius: 10px; cursor: pointer; }
 .more:hover, .more:focus-visible { border-color: var(--red); outline: none; }
 .abil { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -252,18 +249,13 @@ function open(id) {
       </div>
       <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
       <div><h3>한국어판 포켓몬 카드</h3>
-        <div class="kr-frame" id="krFrame"><button class="more" id="krLoad">공식 사이트의 ${DEX[p.sp - 1].n} 카드 불러오기</button></div>
-        <a class="kr-link" href="${krUrl(p)}" target="_blank" rel="noopener">
-          <span>새 탭에서 크게 보기<small>포켓몬 카드 게임 공식 사이트(pokemoncard.co.kr)</small></span><span aria-hidden="true">↗</span></a></div>
+        <div class="kr-frame"><iframe src="${krUrl(p)}" title="${DEX[p.sp - 1].n} 한국어판 카드" loading="lazy"></iframe></div></div>
       <div class="nav">
         <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
         <button id="next" ${idx < 0 || idx >= shown.length - 1 ? 'disabled' : ''}>다음 →</button>
       </div>
     </div>`;
   $('dContent').querySelectorAll('[data-form]').forEach(b => b.onclick = () => open(+b.dataset.form));
-  $('krLoad').onclick = () => {
-    $('krFrame').innerHTML = `<iframe src="${krUrl(p)}" title="${DEX[p.sp - 1].n} 한국어판 카드" loading="lazy"></iframe>`;
-  };
   $('prev').onclick = () => open(shown[idx - 1].id);
   $('next').onclick = () => open(shown[idx + 1].id);
   if (!$('detail').open) $('detail').showModal();
