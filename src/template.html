@@ -1,0 +1,312 @@
+<title>포켓몬 도감</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a red device-style header band over a dense grid of sprite cards; detail opens as a dialog. */
+:root {
+  --bg: #f3f1f0; --surface: #ffffff; --sunk: #ebe7e5; --fg: #221c1b; --muted: #776c69;
+  --line: #e0d9d6; --red: #d6332a; --red-ink: #ffffff; --screen: #cfe6d4;
+  --display: "Do Hyeon", "IBM Plex Sans KR", system-ui, sans-serif;
+  --body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #171313; --surface: #221d1c; --sunk: #2c2524; --fg: #f1ebe9; --muted: #a99d9a;
+  --line: #3a3130; --red: #b8281f; --red-ink: #ffffff; --screen: #24382b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #171313; --surface: #221d1c; --sunk: #2c2524; --fg: #f1ebe9; --muted: #a99d9a;
+  --line: #3a3130; --red: #b8281f; --red-ink: #ffffff; --screen: #24382b; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--red); }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-width: 1200px; margin: 0 auto; }
+header { background: var(--red); color: var(--red-ink); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+header .wrap { padding-block: 14px 12px; display: grid; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.count { white-space: nowrap; }
+.lens { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #bfe9ff, #2a8fd6 60%, #135a8c); border: 3px solid #fff; flex: none; }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; display: block; border: 1px solid rgba(0,0,0,.25); }
+h1 { font-family: var(--display); font-weight: 400; font-size: 1.9rem; margin: 0; letter-spacing: .02em; }
+.count { margin-left: auto; font-family: var(--mono); font-size: .85rem; opacity: .9; }
+header .wrap > * { min-width: 0; }
+.controls { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 8px; }
+.controls input, .controls select { font: inherit; padding: 9px 12px; border-radius: 8px; border: 2px solid rgba(0,0,0,.15); background: var(--surface); color: var(--fg); min-width: 0; width: 100%; }
+@media (max-width: 760px) {
+  .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr); gap: 6px; }
+  .controls input { grid-column: 1 / -1; }
+  .controls select { font-size: .8rem; padding: 7px 18px 7px 8px; appearance: none; -webkit-appearance: none; text-overflow: ellipsis;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: right 9px center, right 5px center; background-size: 4px 4px; background-repeat: no-repeat; }
+}
+.gens { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 24px; }
+.gens button { font: inherit; font-size: .85rem; border: 0; padding: 5px 11px; border-radius: 999px; background: rgba(0,0,0,.18); color: var(--red-ink); cursor: pointer; white-space: nowrap; }
+.gens button[aria-pressed="true"] { background: #fff; color: #b8281f; font-weight: 700; }
+main .wrap { padding-block: 18px 40px; }
+#grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 10px; }
+@media (max-width: 480px) {
+  #grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .card { padding: 8px; }
+  header .wrap { padding-block: 10px 10px; gap: 8px; }
+  h1 { font-size: 1.5rem; }
+  .lens { width: 28px; height: 28px; }
+  .facts span { font-size: .85rem; }
+}
+@media (max-width: 340px) { .dots { display: none; } }
+.card { align-content: start; min-width: 0; grid-template-columns: minmax(0, 1fr); font: inherit; color: inherit; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; cursor: pointer; display: grid; gap: 4px; transition: transform .12s, border-color .12s; }
+.card:hover, .card:focus-visible { transform: translateY(-2px); border-color: var(--red); outline: none; }
+.sprite { background: var(--screen); border-radius: 8px; aspect-ratio: 4 / 3; display: grid; place-items: center; max-width: 100%; }
+.sprite { width: 100%; overflow: hidden; position: relative; }
+.sprite img { position: absolute; inset: 0; image-rendering: pixelated; width: 100%; height: 100%; object-fit: contain; padding: 10%; box-sizing: border-box; display: block; }
+.num { font-family: var(--mono); font-size: .75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.name { font-weight: 700; font-size: 1rem; }
+.types { display: flex; gap: 4px; flex-wrap: wrap; }
+.type { font-size: .72rem; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 4px; letter-spacing: .02em; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.empty { text-align: center; color: var(--muted); padding: 48px 0; }
+dialog { border: 0; padding: 0; border-radius: 16px; background: var(--surface); color: var(--fg); width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
+dialog::backdrop { background: rgba(20,10,10,.55); }
+.d-top { padding: 18px 18px 14px; display: grid; grid-template-columns: 130px 1fr; gap: 16px; align-items: center; position: relative; }
+.d-top .sprite { aspect-ratio: 1; }
+.d-top h2 { font-family: var(--display); font-weight: 400; font-size: 2rem; margin: 2px 0; text-wrap: balance; }
+.en { color: var(--muted); font-size: .85rem; }
+.close { position: absolute; top: 8px; right: 10px; font-size: 1.5rem; line-height: 1; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 6px; }
+.d-body { padding: 0 18px 20px; display: grid; gap: 14px; }
+.flavor { margin: 0; background: var(--sunk); border-radius: 10px; padding: 12px 14px; line-height: 1.6; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.facts div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.facts b { display: block; font-size: .72rem; color: var(--muted); font-weight: 500; letter-spacing: .04em; }
+.facts span { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h3 { font-size: .78rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; font-weight: 500; }
+.stat { display: grid; grid-template-columns: 64px 34px 1fr; gap: 8px; align-items: center; font-size: .88rem; padding: 2px 0; }
+.stat b { font-family: var(--mono); font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+.bar { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: 4px; }
+.forms { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+.forms button { font: inherit; text-align: center; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 10px; padding: 6px; cursor: pointer; display: grid; gap: 3px; align-content: start; }
+.forms button:hover, .forms button:focus-visible { border-color: var(--red); outline: none; }
+.forms button[aria-pressed="true"] { border: 2px solid var(--fg); padding: 5px; }
+.forms .sprite { aspect-ratio: 1; }
+.forms .lv { font-size: .68rem; font-weight: 700; color: var(--red); letter-spacing: .03em; }
+.forms .fn { font-size: .78rem; line-height: 1.3; word-break: keep-all; }
+.tag { font-size: .7rem; font-weight: 700; color: var(--red); letter-spacing: .02em; }
+.tcg { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.tc { color: inherit; text-decoration: none; display: grid; gap: 2px; align-content: start; min-width: 0; font-size: .75rem; }
+.tc-img { aspect-ratio: 63 / 88; max-width: 100%; border-radius: 6px; overflow: hidden; background: var(--sunk); position: relative; transition: transform .12s; }
+.tc:hover .tc-img, .tc:focus-visible .tc-img { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--red); }
+.tc:focus-visible { outline: none; }
+.tc-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.tc-img .ph { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 8px; font-weight: 700; color: var(--muted); border: 2px solid var(--line); border-radius: 6px; word-break: keep-all; }
+.tc-set { font-weight: 500; line-height: 1.3; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tc-r { color: var(--red); font-size: .68rem; font-weight: 700; }
+.note { margin: 0 0 8px; font-size: .8rem; color: var(--muted); background: var(--sunk); border-radius: 8px; padding: 8px 10px; }
+.kr-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-decoration: none; background: var(--red); color: var(--red-ink); border-radius: 10px; padding: 12px 14px; font-weight: 700; }
+.kr-link small { display: block; font-weight: 400; opacity: .85; font-size: .75rem; margin-top: 2px; }
+.kr-link:hover, .kr-link:focus-visible { filter: brightness(1.08); outline: 2px solid var(--fg); outline-offset: 2px; }
+.more { font: inherit; font-size: .85rem; width: 100%; margin-top: 10px; background: var(--sunk); color: var(--fg); border: 0; padding: 9px; border-radius: 8px; cursor: pointer; }
+.abil { display: flex; gap: 6px; flex-wrap: wrap; }
+.abil span { border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; font-size: .85rem; }
+.abil .hidden { border-style: dashed; color: var(--muted); }
+.nav { display: flex; justify-content: space-between; gap: 8px; }
+.nav button { font: inherit; font-size: .85rem; background: var(--sunk); color: var(--fg); border: 0; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+.nav button:disabled { opacity: .4; cursor: default; }
+@media (max-width: 420px) { .d-top { grid-template-columns: 96px 1fr; } .d-top h2 { font-size: 1.6rem; } }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="lens" aria-hidden="true"></div>
+      <div class="dots" aria-hidden="true"><i style="background:#ff5b5b"></i><i style="background:#ffd23f"></i><i style="background:#5fd068"></i></div>
+      <h1>포켓몬 도감</h1>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="controls">
+      <input id="search" type="search" placeholder="이름·번호 검색 (예: 피카츄, 25)" autocomplete="off" aria-label="검색">
+      <select id="typeFilter" aria-label="타입"><option value="">모든 타입</option></select>
+      <select id="formFilter" aria-label="모습">
+        <option value="main" selected>메가·거다이</option><option value="base">기본 모습만</option><option value="mega">메가진화</option><option value="gmax">거다이맥스</option>
+        <option value="region">리전폼 (알로라·가라르 등)</option><option value="other">그 밖의 모습</option><option value="all">모든 모습</option>
+      </select>
+      <select id="sortOrder" aria-label="정렬">
+        <option value="evo">진화순</option><option value="dex">번호순</option>
+      </select>
+    </div>
+    <div class="gens" id="gens" role="group" aria-label="세대"></div>
+  </div>
+</header>
+<main><div class="wrap"><div id="grid"></div></div></main>
+
+<dialog id="detail" aria-labelledby="dName"><div id="dContent"></div></dialog>
+
+<script>
+const DEX = __DATA__;
+const FORMS = __FORMS__;
+DEX.forEach(p => { p.k = 'base'; p.sp = p.id; p.l = ''; });
+FORMS.forEach(f => { const b = DEX[f.sp - 1]; f.e = b.e; f.g = b.g; f.f = b.f; });
+const ALL = new Map([...DEX, ...FORMS].map(p => [p.id, p]));
+const BY_SP = {};
+[...DEX, ...FORMS].forEach(p => (BY_SP[p.sp] ||= []).push(p));
+const TYPES = {
+  normal:['노말','#9a9c8f'], fire:['불꽃','#e2552c'], water:['물','#3f84d8'], electric:['전기','#c99a06'],
+  grass:['풀','#3c9a34'], ice:['얼음','#3bb5cf'], fighting:['격투','#c2541e'], poison:['독','#8d45b8'],
+  ground:['땅','#a26a2c'], flying:['비행','#6c94d6'], psychic:['에스퍼','#e04877'], bug:['벌레','#86991c'],
+  rock:['바위','#a39a6a'], ghost:['고스트','#6b4a8f'], dragon:['드래곤','#5463d6'], dark:['악','#5a4a48'],
+  steel:['강철','#5d97ad'], fairy:['페어리','#d966c9'],
+};
+const KIND = { base: 0, mega: 1, gmax: 2, region: 3, other: 4 };
+const CARDS = __CARDS__;
+const RAR_KO = { 'Common':'커먼', 'Uncommon':'언커먼', 'Rare':'레어', 'Rare Holo':'레어 홀로', 'Promo':'프로모', 'Double Rare':'더블 레어', 'Ultra Rare':'울트라 레어',
+  'Illustration Rare':'일러스트 레어', 'Special Illustration Rare':'스페셜 일러스트 레어', 'Hyper Rare':'하이퍼 레어', 'Rare Secret':'시크릿 레어',
+  'Shiny Rare':'색이 다른 레어', 'Shiny Ultra Rare':'색이 다른 울트라 레어', 'Rare Shiny':'색이 다른 레어', 'Radiant Rare':'찬란한 레어', 'Amazing Rare':'어메이징 레어', 'ACE SPEC Rare':'ACE SPEC' };
+function cardImg([s, num, , , h]) {
+  const sid = CARDS.sets[s][0];
+  if (h === 0) return [`https://images.pokemontcg.io/${sid}/${num}.png`, `https://images.pokemontcg.io/${sid}/${num}_hires.png`];
+  if (h === 1) return [`https://images.scrydex.com/pokemon/${sid}-${num}/small`, `https://images.scrydex.com/pokemon/${sid}-${num}/large`];
+  return h;
+}
+let cardList = [], cardShown = 0;
+function cardFail(img) {
+  img.replaceWith(Object.assign(document.createElement('span'), { className: 'ph', textContent: img.alt }));
+  const n = document.getElementById('cardNote'); if (n) n.hidden = false;
+}
+function moreCards() {
+  const box = $('tcg'); const next = cardList.slice(cardShown, cardShown + 30);
+  box.insertAdjacentHTML('beforeend', next.map(c => {
+    const [sm, lg] = cardImg(c); const set = CARDS.sets[c[0]]; const r = CARDS.rar[c[3]];
+    return `<a class="tc" href="${lg}" target="_blank" rel="noopener" title="${c[2]} · ${set[1]} ${c[1]}">
+      <div class="tc-img"><img src="${sm}" alt="${c[2].replace(/"/g, '&quot;')}" loading="lazy" onerror="cardFail(this)"></div>
+      <span class="tc-set">${set[1]}</span>
+      <span class="num">${c[1]}${/^\d+$/.test(c[1]) && +c[1] <= set[3] ? '/' + set[3] : ''} · ${set[2]}</span>
+      ${r ? `<span class="tc-r">${RAR_KO[r] || r}</span>` : ''}</a>`;
+  }).join(''));
+  cardShown += next.length;
+  const left = cardList.length - cardShown;
+  $('moreCards').hidden = left <= 0;
+  $('moreCards').textContent = `카드 더 보기 (${left}장 남음)`;
+}
+const STAT = ['HP','공격','방어','특수공격','특수방어','스피드'];
+const GENS = [[1,1025,'전체'],[1,151],[152,251],[252,386],[387,493],[494,649],[650,721],[722,809],[810,905],[906,1025]];
+const $ = id => document.getElementById(id);
+const pad = n => 'No.' + String(n).padStart(4,'0');
+const img = p => 'data:image/webp;base64,' + p.img;
+const badge = t => `<span class="type" style="background:${TYPES[t][1]}">${TYPES[t][0]}</span>`;
+let gen = 0, shown = [];
+
+for (const [k,[ko]] of Object.entries(TYPES)) $('typeFilter').insertAdjacentHTML('beforeend', `<option value="${k}">${ko}</option>`);
+GENS.forEach((g,i) => {
+  const b = document.createElement('button');
+  b.textContent = g[2] || `${i}세대`;
+  b.onclick = () => { gen = i; render(); };
+  $('gens').appendChild(b);
+});
+$('search').oninput = render;
+$('typeFilter').onchange = render;
+$('formFilter').onchange = render;
+$('sortOrder').onchange = render;
+
+function render() {
+  const q = $('search').value.trim().toLowerCase().replace(/^no\.?\s*/, '').replace(/^#/, '');
+  const num = /^\d+$/.test(q) ? +q : null;
+  const type = $('typeFilter').value;
+  const [s,e] = GENS[gen];
+  [...$('gens').children].forEach((b,i) => b.setAttribute('aria-pressed', i === gen));
+  const form = $('formFilter').value;
+  const pool = form === 'base' ? DEX : form === 'all' ? [...DEX, ...FORMS]
+    : form === 'main' ? [...DEX, ...FORMS.filter(f => f.k === 'mega' || f.k === 'gmax')] : FORMS.filter(f => f.k === form);
+  const key = $('sortOrder').value === 'evo' ? p => DEX[p.sp - 1].o : p => p.sp;
+  shown = pool.filter(p => p.sp >= s && p.sp <= e && (!type || p.t.includes(type)) &&
+    (!q || (num !== null ? p.sp === num : p.n.includes(q) || p.e.toLowerCase().includes(q) || p.l.includes(q))))
+    ;
+  // 진화 순서: 지금 보이는 것 중 가장 앞 번호가 있는 진화 계열부터, 계열 안에서는 진화 단계 순서로
+  const chainMin = {};
+  shown.forEach(p => { const c = DEX[p.sp - 1].c; chainMin[c] = Math.min(chainMin[c] ?? Infinity, p.sp); });
+  const evo = $('sortOrder').value === 'evo';
+  shown.sort((a,b) => evo
+    ? chainMin[DEX[a.sp-1].c] - chainMin[DEX[b.sp-1].c] || KIND[a.k] - KIND[b.k] || key(a) - key(b) || a.id - b.id
+    : key(a) - key(b) || KIND[a.k] - KIND[b.k] || a.id - b.id);
+  $('count').textContent = `${shown.length}마리`;
+  $('grid').innerHTML = shown.length ? shown.map(p => `
+    <button class="card" data-id="${p.id}">
+      <div class="sprite"><img src="${img(p)}" alt="" loading="lazy"></div>
+      <span class="num">${pad(p.sp)}</span>
+      <span class="name">${p.n}</span>${p.l ? `<span class="tag">${p.l}</span>` : ''}
+      <span class="types">${p.t.map(badge).join('')}</span>
+    </button>`).join('') : '<p class="empty">조건에 맞는 포켓몬이 없어요. 검색어나 타입을 바꿔 보세요.</p>';
+}
+
+$('grid').addEventListener('click', e => {
+  const c = e.target.closest('.card');
+  if (c) open(+c.dataset.id);
+});
+$('detail').addEventListener('click', e => { if (e.target === $('detail')) $('detail').close(); });
+
+function open(id) {
+  const p = ALL.get(id);
+  // 진화 단계 → 메가 → 거다이맥스 → 리전폼 → 그 밖의 모습 (없는 건 빠짐)
+  const chain = DEX.filter(x => x.c === DEX[p.sp - 1].c).sort((a,b) => a.o - b.o);
+  const extra = k => chain.flatMap(x => BY_SP[x.id].filter(f => f.k === k));
+  const family = [
+    ...chain.map(x => [x, `${x.st}단계`]),
+    ...extra('mega').map(f => [f, f.l]),
+    ...extra('gmax').map(f => [f, '거다이맥스']),
+    ...extra('region').map(f => [f, '리전폼']),
+    ...extra('other').map(f => [f, '다른 모습']),
+  ];
+  const idx = shown.findIndex(x => x.id === id);
+  const col = TYPES[p.t[0]][1];
+  const total = p.s.reduce((a,b) => a + b, 0);
+  $('dContent').innerHTML = `
+    <div class="d-top" style="background:linear-gradient(${col}33, transparent)">
+      <button class="close" aria-label="닫기" onclick="detail.close()">×</button>
+      <div class="sprite"><img src="${img(p)}" alt="${p.n}"></div>
+      <div>
+        <span class="num">${pad(p.sp)}</span>
+        <h2 id="dName">${p.n}</h2>${p.l ? `<div class="tag">${p.l}</div>` : ''}
+        <div class="en">${p.e} · ${p.g}</div>
+        <div class="types" style="margin-top:8px">${p.t.map(badge).join('')}</div>
+      </div>
+    </div>
+    <div class="d-body">
+      ${family.length > 1 ? `<div><h3>진화와 모습</h3><div class="forms">${family.map(([o, lv]) =>
+        `<button data-form="${o.id}" aria-pressed="${o.id === p.id}">
+          <div class="sprite"><img src="${img(o)}" alt=""></div>
+          <span class="lv">${lv}</span>
+          <span class="fn">${o.k === 'region' || o.k === 'other' ? `${o.n}<br><small>${o.l}</small>` : o.n}</span>
+        </button>`).join('')}</div></div>` : ''}
+      ${p.k === 'gmax' ? '<p class="flavor">거다이맥스는 다이맥스 중에 특정 포켓몬만 할 수 있는 특별한 모습이에요. 종족값은 기본 모습과 같고, 배틀에서는 다이맥스처럼 HP가 늘어나요.</p>' : p.f ? `<p class="flavor">${p.f}</p>` : ''}
+      <div class="facts">
+        <div><b>키</b><span>${p.k === 'gmax' ? '—' : (p.h/10).toFixed(1) + ' m'}</span></div>
+        <div><b>몸무게</b><span>${p.k === 'gmax' ? '—' : (p.w/10).toFixed(1) + ' kg'}</span></div>
+        <div><b>종족값 합계</b><span>${total}</span></div>
+      </div>
+      <div><h3>종족값</h3>${p.s.map((v,i) => `
+        <div class="stat"><span>${STAT[i]}</span><b>${v}</b>
+        <div class="bar"><span style="width:${Math.min(v/200*100,100)}%;background:${col}"></span></div></div>`).join('')}
+      </div>
+      <div><h3>특성</h3><div class="abil">${p.a.map(([n,h]) => `<span class="${h?'hidden':''}">${n}${h?' (숨겨진 특성)':''}</span>`).join('')}</div></div>
+      <div><h3>한국어판 포켓몬 카드</h3>
+        <a class="kr-link" href="https://pokemoncard.co.kr/cards?s=${encodeURIComponent(DEX[p.sp - 1].n)}" target="_blank" rel="noopener">
+          <span>${DEX[p.sp - 1].n} 카드 보기<small>포켓몬 카드 게임 공식 사이트(pokemoncard.co.kr) 검색이 새 탭에서 열려요</small></span><span aria-hidden="true">↗</span></a></div>
+      ${(CARDS.by[p.sp] || []).length ? `<div><h3>영어판 포켓몬 카드 ${CARDS.by[p.sp].length}장 · 최신 순</h3>
+        <p class="note" id="cardNote" hidden>이 페이지에서는 카드 그림을 불러올 수 없어요. 내려받은 HTML 파일로 열면 그림이 보여요. 카드를 누르면 큰 그림이 새 탭에서 열려요.</p>
+        <div class="tcg" id="tcg"></div><button class="more" id="moreCards" hidden></button></div>` : ''}
+      <div class="nav">
+        <button id="prev" ${idx <= 0 ? 'disabled' : ''}>← 이전</button>
+        <button id="next" ${idx < 0 || idx >= shown.length - 1 ? 'disabled' : ''}>다음 →</button>
+      </div>
+    </div>`;
+  $('dContent').querySelectorAll('[data-form]').forEach(b => b.onclick = () => open(+b.dataset.form));
+  const all = CARDS.by[p.sp] || [];
+  const want = p.k === 'mega' ? /^(M |Mega )/ : p.k === 'gmax' ? /VMAX/ : null;
+  cardList = want ? [...all.filter(c => want.test(c[2])), ...all.filter(c => !want.test(c[2]))] : all;
+  cardShown = 0;
+  if (all.length) { $('moreCards').onclick = moreCards; moreCards(); }
+  $('prev').onclick = () => open(shown[idx - 1].id);
+  $('next').onclick = () => open(shown[idx + 1].id);
+  if (!$('detail').open) $('detail').showModal();
+}
+
+render();
+</script>
